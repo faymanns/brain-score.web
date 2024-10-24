@@ -146,8 +146,8 @@ $(document).ready(function () {
             .style("fill", "black")  
             .text(xName
                 .replace(/([a-z])([A-Z])/g, '$1 $2')  // Adds space before capital letters in camel case
-                .replace(/([a-zA-Z])(\d+)/g, '$1 $2')  // Adds space between letters and following digits
-                .replace(/(\d+)([a-zA-Z])/g, '$1 $2')  // Adds space between digits and following letters
+                .replace(/(\b[a-zA-Z]+)(\d+)(?!V1\b)/g, '$1 $2')  // Adds space between letters and digits, ignoring "V1"
+                .replace(/(\d+)([a-zA-Z])(?!V1\b)/g, '$1 $2')  // Adds space between digits and letters, ignoring "V1"
                 .replace(/[_-]/g, ' '));  // Replace all '_' and '-' with spaces
 
         // Set tick text color to black for both axes
