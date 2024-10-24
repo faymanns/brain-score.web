@@ -18,7 +18,7 @@ $(document).ready(function () {
         height = outerHeight - margin.top - margin.bottom;
 
     var dot_size = 8,
-        color = '#078930';
+        color = '#000000';
 
     var idKey = "model",
         xKey = null,
