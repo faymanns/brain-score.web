@@ -18,8 +18,7 @@ $(document).ready(function () {
         height = outerHeight - margin.top - margin.bottom;
 
     var dot_size = 8,
-        // color = '#078930';
-        color = '#006400';
+        color = '#078930';
 
     var idKey = "model",
         xKey = null,
@@ -51,15 +50,25 @@ $(document).ready(function () {
         return "translate(" + x(d[xKey]) + "," + y(d[yKey]) + ")";
     }
 
-// from http://bl.ocks.org/williaster/10ef968ccfdc71c30ef8
-// Handler for dropdown value change
+    // Function to make a string human-readable
+    function humanReadable(text) {
+        return text
+            .replace(/([a-z])([A-Z])/g, '$1 $2')  // Adds space before capital letters in camel case
+            .replace(/(\b[a-zA-Z]+)(\d+)(?!V1\b)/g, '$1 $2')  // Adds space between letters and digits, ignoring "V1"
+            .replace(/(\d+)([a-zA-Z])(?!V1\b)/g, '$1 $2')  // Adds space between digits and letters, ignoring "V1"
+            .replace(/[_]/g, ' ')  // Replace all '_' with spaces
+            .replace(/[-]/g, ' - ');  // Replace all '-' with ' - '
+    }
+
     var updatePlot = function () {
         xKey = $(xlabel_selector).prop('value') + "-score";
         yKey = $(ylabel_selector).prop('value') + "-score";
-        var xName = $(xlabel_selector).find('option:selected').text(),
-            yName = $(ylabel_selector).find('option:selected').text();
-        $(label_description_selector).html(xName + ' <span>vs</span> ' + yName);
 
+        var xName = humanReadable($(xlabel_selector).find('option:selected').text());
+        var yName = humanReadable($(ylabel_selector).find('option:selected').text());
+
+        var titleHTML = '<strong>' + xName + '</strong> <span style="color: #078930;">vs</span> <strong>' + yName + '</strong>';
+        $(label_description_selector).html(titleHTML);
 
         d3.selectAll("svg > *").remove();
 
@@ -75,12 +84,10 @@ $(document).ready(function () {
 
         svg.call(tip);
 
-        // filter data to guard against empty "" or "X" scores turning into NaNs that mess up d3
         var filtered_data = comparison_data.filter(row =>
             row[xKey].length > 0 && !isNaN(row[xKey]) &&
             row[yKey].length > 0 && !isNaN(row[yKey]));
 
-        // axes range
         var xMax = d3.max(filtered_data, function (d) {
                 return d[xKey];
             }) * 1.05,
@@ -103,7 +110,6 @@ $(document).ready(function () {
         x.domain([xMin, xMax]);
         y.domain([yMin, yMax]);
 
-        // zoom
         var zoomBeh = d3.behavior.zoom()
             .x(x)
             .y(y)
@@ -115,7 +121,6 @@ $(document).ready(function () {
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
             .call(zoomBeh);
 
-        // axes
         xAxis = d3.svg.axis()
             .scale(x)
             .ticks(5)
@@ -136,29 +141,20 @@ $(document).ready(function () {
             .classed("x axis", true)
             .attr("transform", "translate(0," + height + ")")
             .call(xAxis)
-
-            // For the x-axis label
             .append("text")
             .attr("class", "label")
             .attr("x", width / 2)
             .attr("y", 35)
             .style("text-anchor", "middle")
-            .style("fill", "black")  
-            .text(xName
-                .replace(/([a-z])([A-Z])/g, '$1 $2')  // Adds space before capital letters in camel case
-                .replace(/(\b[a-zA-Z]+)(\d+)(?!V1\b)/g, '$1 $2')  // Adds space between letters and digits, ignoring "V1"
-                .replace(/(\d+)([a-zA-Z])(?!V1\b)/g, '$1 $2')  // Adds space between digits and letters, ignoring "V1"
-                .replace(/[_-]/g, ' '));  // Replace all '_' and '-' with spaces
+            .style("fill", "black")
+            .text(xName);  // Use the human-readable xName here
 
-        // Set tick text color to black for both axes
         svg.selectAll(".x.axis text")  
-        .style("fill", "black");  
+            .style("fill", "black");
 
         g.append("g")
             .classed("y axis", true)
             .call(yAxis)
-
-            // For the y-axis label
             .append("text")
             .attr("class", "label")
             .attr("transform", "rotate(-90)")
@@ -166,25 +162,17 @@ $(document).ready(function () {
             .attr("y", -50)
             .attr("dy", ".71em")
             .style("text-anchor", "middle")
-            .style("fill", "black")  // Set label text color to black
-            .text(yName
-                .replace(/([a-z])([A-Z])/g, '$1 $2')  // Adds space before capital letters in camel case
-                .replace(/([a-zA-Z])(\d+)/g, '$1 $2')  // Adds space between letters and following digits
-                .replace(/(\d+)([a-zA-Z])/g, '$1 $2')  // Adds space between digits and following letters
-                .replace(/[_-]/g, ' '));  // Replace all '_' and '-' with spaces
+            .style("fill", "black")
+            .text(yName);  // Use the human-readable yName here
 
         svg.selectAll(".y.axis text") 
-        .style("fill", "black");  
+            .style("fill", "black");
 
-         
-
-        // create svg objects
         var objects = g.append("svg")
             .classed("objects", true)
             .attr("width", width)
             .attr("height", height);
 
-        // fill svg with data and position
         objects.selectAll(".dot")
             .data(filtered_data)
             .enter().append("circle")
@@ -201,17 +189,14 @@ $(document).ready(function () {
 
     updatePlot();
 
-
-    // Add tool that allows for type in search bar 
     $('#xlabel').select2({
         placeholder: "Select or type",
-        tags: true,  // Allow users to add custom entries
+        tags: true,
         allowClear: true
     });
     $('#ylabel').select2({
         placeholder: "Select or type",
-        tags: true,  // Allow users to add custom entries
+        tags: true,
         allowClear: true
     });
-
 });
