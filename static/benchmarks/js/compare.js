@@ -200,4 +200,18 @@ $(document).ready(function () {
         .on("change", updatePlot);
 
     updatePlot();
+
+
+    // Add tool that allows for type in search bar 
+    $('#xlabel').select2({
+        placeholder: "Select or type",
+        tags: true,  // Allow users to add custom entries
+        allowClear: true
+    });
+    $('#ylabel').select2({
+        placeholder: "Select or type",
+        tags: true,  // Allow users to add custom entries
+        allowClear: true
+    });
+
 });
