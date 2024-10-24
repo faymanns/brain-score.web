@@ -11,14 +11,15 @@ $(document).ready(function () {
         return;
     }
 
-    var margin = {top: 0, right: 0, bottom: 20, left: 60},
+    var margin = {top: 0, right: 0, bottom: 40, left: 60},
         outerWidth = 600,
         outerHeight = 400,
         width = outerWidth - margin.left - margin.right,
         height = outerHeight - margin.top - margin.bottom;
 
     var dot_size = 8,
-        color = '#000000';
+        // color = '#078930';
+        color = '#006400';
 
     var idKey = "model",
         xKey = null,
@@ -134,11 +135,48 @@ $(document).ready(function () {
         g.append("g")
             .classed("x axis", true)
             .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
+            .call(xAxis)
+
+            // For the x-axis label
+            .append("text")
+            .attr("class", "label")
+            .attr("x", width / 2)
+            .attr("y", 35)
+            .style("text-anchor", "middle")
+            .style("fill", "black")  
+            .text(xName
+                .replace(/([a-z])([A-Z])/g, '$1 $2')  // Adds space before capital letters in camel case
+                .replace(/([a-zA-Z])(\d+)/g, '$1 $2')  // Adds space between letters and following digits
+                .replace(/(\d+)([a-zA-Z])/g, '$1 $2')  // Adds space between digits and following letters
+                .replace(/[_-]/g, ' '));  // Replace all '_' and '-' with spaces
+
+        // Set tick text color to black for both axes
+        svg.selectAll(".x.axis text")  
+        .style("fill", "black");  
 
         g.append("g")
             .classed("y axis", true)
-            .call(yAxis);
+            .call(yAxis)
+
+            // For the y-axis label
+            .append("text")
+            .attr("class", "label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -50)
+            .attr("dy", ".71em")
+            .style("text-anchor", "middle")
+            .style("fill", "black")  // Set label text color to black
+            .text(yName
+                .replace(/([a-z])([A-Z])/g, '$1 $2')  // Adds space before capital letters in camel case
+                .replace(/([a-zA-Z])(\d+)/g, '$1 $2')  // Adds space between letters and following digits
+                .replace(/(\d+)([a-zA-Z])/g, '$1 $2')  // Adds space between digits and following letters
+                .replace(/[_-]/g, ' '));  // Replace all '_' and '-' with spaces
+
+        svg.selectAll(".y.axis text") 
+        .style("fill", "black");  
+
+         
 
         // create svg objects
         var objects = g.append("svg")
