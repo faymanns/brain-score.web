@@ -37,10 +37,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-try:
-    SECRET_KEY = get_secret("brainscore-django-secret-key", REGION_NAME)["SECRET_KEY"]
-except NoCredentialsError:
-    SECRET_KEY = 'dummy'
+# try:
+#     SECRET_KEY = get_secret("brainscore-django-secret-key", REGION_NAME)["SECRET_KEY"]
+# except NoCredentialsError:
+SECRET_KEY = 'dummy'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
@@ -55,15 +55,15 @@ ALLOWED_HOSTS = hosts_list
 # Allows E-mail use
 # After 6/1/22, Google removed login with username/password from "less secure apps" (i.e. Django)
 # django_gmail_password thus is an app-specific login for Gmail (adds Django as authorized login for Gmail)
-try:
-    email_secrets = get_secret("brainscore-email", REGION_NAME)
-except NoCredentialsError:
-    email_secrets = {'host': None, 'address': None, 'password': None, 'django_gmail_password': None}
+# try:
+#     email_secrets = get_secret("brainscore-email", REGION_NAME)
+# except NoCredentialsError:
+#     email_secrets = {'host': None, 'address': None, 'password': None, 'django_gmail_password': None}
 EMAIL_USE_TLS = True
-EMAIL_HOST = email_secrets["host"]
+EMAIL_HOST = None  # email_secrets["host"]
 EMAIL_PORT = 587
-EMAIL_HOST_USER = email_secrets["address"]
-EMAIL_HOST_PASSWORD = email_secrets["django_gmail_password"]
+EMAIL_HOST_USER = None # email_secrets["address"]
+EMAIL_HOST_PASSWORD = None # email_secrets["django_gmail_password"]
 
 LOGOUT_REDIRECT_URL = '/'
 
@@ -115,51 +115,51 @@ WSGI_APPLICATION = 'web.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 def get_db_info():
-    if os.getenv("DJANGO_ENV") == "development":
-        from dotenv import load_dotenv; load_dotenv()
+    # if os.getenv("DJANGO_ENV") == "development":
+    #     from dotenv import load_dotenv; load_dotenv()
 
-        return {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': 'dev',
-                'USER': 'postgres',
-                'PASSWORD': os.getenv('DB_PASSWORD'),
-                'HOST': os.getenv('DB_HOST'),
-                'PORT': '5432'
-            }
+    #     return {
+    #         'default': {
+    #             'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #             'NAME': 'dev',
+    #             'USER': 'postgres',
+    #             'PASSWORD': os.getenv('DB_PASSWORD'),
+    #             'HOST': os.getenv('DB_HOST'),
+    #             'PORT': '5432'
+    #         }
+    #     }
+    # db_secret_name = os.getenv("DB_CRED", "brainscore-1-ohio-cred")
+    # try:
+    #     secrets = get_secret(db_secret_name, REGION_NAME)
+    #     DATABASES = {
+    #         'default': {
+    #             'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #             'NAME': secrets["dbInstanceIdentifier"],
+    #             'USER': secrets["username"],
+    #             'PASSWORD': secrets["password"],
+    #             'HOST': secrets["host"],
+    #             'PORT': secrets["port"]
+    #         }
+    #     }
+    # except NoCredentialsError:
+    #     if 'RDS_DB_NAME' in os.environ:  # when deployed to AWS, use environment settings for database
+    #         DATABASES = {
+    #             'default': {
+    #                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #                 'NAME': os.environ['RDS_DB_NAME'],
+    #                 'USER': os.environ['RDS_USERNAME'],
+    #                 'PASSWORD': os.environ['RDS_PASSWORD'],
+    #                 'HOST': os.environ['RDS_HOSTNAME'],
+    #                 'PORT': os.environ['RDS_PORT'],
+    #             }
+    #         }
+    #     else:  # for deployment, use local sqlite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
-    db_secret_name = os.getenv("DB_CRED", "brainscore-1-ohio-cred")
-    try:
-        secrets = get_secret(db_secret_name, REGION_NAME)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': secrets["dbInstanceIdentifier"],
-                'USER': secrets["username"],
-                'PASSWORD': secrets["password"],
-                'HOST': secrets["host"],
-                'PORT': secrets["port"]
-            }
-        }
-    except NoCredentialsError:
-        if 'RDS_DB_NAME' in os.environ:  # when deployed to AWS, use environment settings for database
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                    'NAME': os.environ['RDS_DB_NAME'],
-                    'USER': os.environ['RDS_USERNAME'],
-                    'PASSWORD': os.environ['RDS_PASSWORD'],
-                    'HOST': os.environ['RDS_HOSTNAME'],
-                    'PORT': os.environ['RDS_PORT'],
-                }
-            }
-        else:  # for deployment, use local sqlite
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-                }
-            }
+    }
     return DATABASES
 
 
