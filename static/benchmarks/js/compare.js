@@ -37,6 +37,32 @@ $(document).ready(function () {
         .attr("height", outerHeight)
         .attr("fill", "white");
 
+    function updateRegressionLine() {
+        // Filter data to guard against empty "" or "X" scores turning into NaNs
+        var filtered_data = comparison_data.filter(row =>
+            row[xKey].length > 0 && !isNaN(row[xKey]) &&
+            row[yKey].length > 0 && !isNaN(row[yKey]));
+        
+                // Calculate the correlation
+        var xValues = filtered_data.map(d => +d[xKey]);
+        var yValues = filtered_data.map(d => +d[yKey]);
+
+        const { slope, intercept } = calculateLinearRegression(xValues, yValues);
+
+        // Calculate line endpoints within the current x-axis range
+        const xStart = x.domain()[0];
+        const xEnd = x.domain()[1];
+        const yStart = slope * xStart + intercept;
+        const yEnd = slope * xEnd + intercept;
+
+        // Update the regression line with the new start and end points
+        svg.select(".regression-line")
+            .attr("x1", x(xStart))
+            .attr("y1", y(yStart))
+            .attr("x2", x(xEnd))
+            .attr("y2", y(yEnd));
+    }
+
     function zoom() {
         svg.select(".x.axis").call(xAxis);
         svg.select(".y.axis").call(yAxis);
@@ -44,6 +70,8 @@ $(document).ready(function () {
         svg.selectAll(".dot")
             .attr("transform", transform)
             .attr("r", dot_size * d3.event.scale);
+        // Update the regression line based on zoom
+        updateRegressionLine();
     }
 
     function transform(d) {
@@ -58,6 +86,33 @@ $(document).ready(function () {
             .replace(/(\d+)([a-zA-Z])(?!V1\b)/g, '$1 $2')  // Adds space between digits and letters, ignoring "V1"
             .replace(/[_]/g, ' ')  // Replace all '_' with spaces
             .replace(/[-]/g, ' - ');  // Replace all '-' with ' - '
+    }
+
+    // Calculate Pearson correlation coefficient
+    function calculateCorrelation(xArr, yArr) {
+        const n = xArr.length;
+        const sumX = xArr.reduce((a, b) => a + b, 0);
+        const sumY = yArr.reduce((a, b) => a + b, 0);
+        const sumXY = xArr.map((xi, i) => xi * yArr[i]).reduce((a, b) => a + b, 0);
+        const sumX2 = xArr.map(xi => xi * xi).reduce((a, b) => a + b, 0);
+        const sumY2 = yArr.map(yi => yi * yi).reduce((a, b) => a + b, 0);
+
+        const numerator = (n * sumXY) - (sumX * sumY);
+        const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+        return denominator === 0 ? 0 : numerator / denominator;
+    }
+
+    // Calculate Linear Regression Slope and Intercept
+    function calculateLinearRegression(xArr, yArr) {
+        const n = xArr.length;
+        const sumX = xArr.reduce((a, b) => a + b, 0);
+        const sumY = yArr.reduce((a, b) => a + b, 0);
+        const sumXY = xArr.map((xi, i) => xi * yArr[i]).reduce((a, b) => a + b, 0);
+        const sumX2 = xArr.map(xi => xi * xi).reduce((a, b) => a + b, 0);
+        const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        const intercept = (sumY - slope * sumX) / n;
+        return { slope, intercept };
     }
 
     var updatePlot = function () {
@@ -87,6 +142,21 @@ $(document).ready(function () {
         var filtered_data = comparison_data.filter(row =>
             row[xKey].length > 0 && !isNaN(row[xKey]) &&
             row[yKey].length > 0 && !isNaN(row[yKey]));
+
+
+        // Calculate the correlation
+        var xValues = filtered_data.map(d => +d[xKey]);
+        var yValues = filtered_data.map(d => +d[yKey]);
+        var correlation = calculateCorrelation(xValues, yValues);
+
+
+        // Calculate regression line
+        var { slope, intercept } = calculateLinearRegression(xValues, yValues);
+        // Define the endpoints for the line
+        var xStart = d3.min(xValues);
+        var xEnd = d3.max(xValues);
+        var yStart = slope * xStart + intercept;
+        var yEnd = slope * xEnd + intercept;
 
         var xMax = d3.max(filtered_data, function (d) {
                 return d[xKey];
@@ -167,6 +237,27 @@ $(document).ready(function () {
 
         svg.selectAll(".y.axis text") 
             .style("fill", "black");
+
+        // Correlation plotting
+        g.append("text")
+            .attr("class", "correlation-text")
+            .attr("x", width - 50)  // Positioning it towards the top-right corner
+            .attr("y", 20)
+            .attr("text-anchor", "end")
+            .attr("fill", "red")
+            .style("font-size", "12px")
+            .text("Correlation: " + correlation.toFixed(2));
+
+        // plotting the line
+        g.append("line")
+            .attr("class", "regression-line")
+            .attr("x1", x(xStart))
+            .attr("y1", y(yStart))
+            .attr("x2", x(xEnd))
+            .attr("y2", y(yEnd))
+            .attr("stroke", "red")
+            .attr("stroke-width", 2);
+
 
         var objects = g.append("svg")
             .classed("objects", true)
